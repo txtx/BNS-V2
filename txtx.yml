@@ -1,6 +1,11 @@
 ---
 name: BNS V2
 id: bns-v2
+runbooks:
+  - name: Register BNS Name
+    id: register-bns-name
+    description: Calls the name-preorder and name-register BNS V2 functions
+    location: runbooks/users/register-bns-name.tx
   - name: Claim Preorder
     id: claim-preorder
     description: This Runbook preorders a BNS name, then claims the preorder STX commitment
