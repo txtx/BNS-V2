@@ -20,7 +20,7 @@ runbooks:
     location: "./runbooks/users/namespace-register.tx"
   - name: Update Zonefile Hash
     id: update-zonefile-hash
-    description: Calls the update-zonefile-hash BNS V2 function, expecting the name to already be registered.
+    description: Calls the update-zonefile-hash BNS V2 function, expecting the name to already be registered
     location: "./runbooks/users/update-zonefile-hash.tx"
 environments:
   devnet:
