@@ -1,0 +1,88 @@
+# define defaults
+action "default" "stacks::set_default_network" {
+  network_id = env.stacks_network_id
+  rpc_api_url = env.stacks_api_url
+}
+
+# define wallets
+wallet "manager" "stacks::connect" {
+  expected_address = env.bns_manager_address
+}
+
+# define inputs
+input "namespace" {
+  description = "TLD / Namespace"
+  default = "btc"
+}
+
+input "name" {
+  description = "Domain name to order"
+  default = "bns"
+}
+
+input "salt" {
+  description = "Random salt to use for preventing front-running"
+  default = "00000000000000"
+}
+
+input "zonefile" {
+  description = "Zonefile to attach to the new domain"
+  default = "0000000000"
+}
+
+
+# perform on-chain interactions
+action "send_name_preorder" "stacks::send_contract_call" {
+  description = "Send Manager Transaction to Preorder ${input.name}.${input.namespace}"
+  contract_id = env.bns_v2_id
+  function_name = "mng-name-preorder"
+  function_args = [
+      stacks::cv_buff(
+        ripemd160(sha256(
+          [
+            encode_hex("${input.name}.${input.namespace}"),
+            encode_hex(input.salt)
+          ]
+        ))
+      )
+  ]
+  signer = wallet.manager
+  confirmations = 1
+}
+
+action "send_name_register" "stacks::send_contract_call" {
+  description = "Send Manager Transaction to Register ${input.name}.${input.namespace}"
+  contract_id = env.bns_v2_id
+  function_name = "mng-name-register"
+  function_args = [
+      stacks::cv_buff(encode_hex(input.namespace)),
+      stacks::cv_buff(encode_hex(input.name)),
+      stacks::cv_buff(encode_hex(input.salt)),
+      stacks::cv_buff(encode_hex(input.zonefile)),
+      stacks::cv_principal(env.bns_operator_address)
+  ]
+  signer = wallet.manager
+  confirmations = 1
+  depends_on = [action.send_name_preorder.tx_id]
+}
+
+# display outputs
+output "bns_name" {
+  value = "Registered ${input.name}.${input.namespace}"
+}
+
+output "name_preorder_tx_link" {
+  value = "https://explorer.hiro.so/txid/${action.send_name_preorder.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+}
+
+output "name_preorder_result" {
+  value = action.send_name_preorder.result
+}
+
+output "name_register_tx_link" {
+  value = "https://explorer.hiro.so/txid/${action.send_name_register.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+}
+
+output "name_register_result" {
+  value = action.send_name_register.result
+}
