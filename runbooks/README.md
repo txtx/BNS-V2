@@ -1,6 +1,6 @@
 # BNS V2 Runbooks
 
-[![Txtx](https://img.shields.io/badge/Operated%20with-Txtx-gree?labelColor=gray)]((https://txtx.sh))
+[![Txtx](https://img.shields.io/badge/Operated%20with-Txtx-gree?labelColor=gray)](https://txtx.sh)
 
 ## Runbooks available
 
