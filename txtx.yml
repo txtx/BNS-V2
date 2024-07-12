@@ -1,0 +1,29 @@
+---
+name: BNS V2
+id: bns-v2
+  - name: Register BNS Namespace
+    id: namespace-register
+    description: Registers a BNS namespace
+    location: "./runbooks/users/namespace-register.tx"
+environments:
+  devnet:
+    stacks_network_id: devnet
+    stacks_api_url: http://localhost:3999
+    bns_v2_id: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.BNS-V2
+    bns_operator_address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
+    bns_operator_mnemonic: "cycle puppy glare enroll cost improve round trend wrist mushroom scorpion tower claim oppose clever elephant dinosaur eight problem before frozen dune wagon high"
+    bns_manager_address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
+  testnet:
+    stacks_network_id: testnet
+    stacks_api_url: https://api.testnet.hiro.so
+    bns_v2_id: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.BNS-V2
+    bns_operator_address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
+    bns_operator_mnemonic: "cycle puppy glare enroll cost improve round trend wrist mushroom scorpion tower claim oppose clever elephant dinosaur eight problem before frozen dune wagon high"
+    bns_manager_address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
+  mainnet:
+    stacks_network_id: mainnet
+    stacks_api_url: https://api.hiro.so
+    bns_v2_id: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.BNS-V2 # todo
+    bns_operator_address: SP2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1J5QKA2F
+    bns_operator_mnemonic: "cycle puppy glare enroll cost improve round trend wrist mushroom scorpion tower claim oppose clever elephant dinosaur eight problem before frozen dune wagon high"
+    bns_manager_address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
