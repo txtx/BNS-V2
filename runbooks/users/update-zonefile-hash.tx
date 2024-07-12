@@ -1,0 +1,54 @@
+# define defaults
+action "default" "stacks::set_default_network" {
+  network_id = env.stacks_network_id
+  rpc_api_url = env.stacks_api_url
+}
+
+# define wallets
+wallet "operator" "stacks::connect" {
+  expected_address = env.bns_operator_address
+}
+
+# define inputs
+input "namespace" {
+  description = "TLD / Namespace"
+  default = "btc"
+}
+
+input "name" {
+  description = "Domain name to update"
+  default = "bns"
+}
+
+
+input "zonefile" {
+  description = "New zonefile hash to attach to the new domain"
+  default = "0000000000"
+}
+
+# perform on-chain interactions
+action "send_update_zonefile" "stacks::send_contract_call" {
+  description = "Send Transaction to Update Zonefile Hash for ${input.name}.${input.namespace}"
+  contract_id = env.bns_v2_id
+  function_name = "update-zonefile-hash"
+  function_args = [
+      stacks::cv_buff(encode_hex(input.namespace)),
+      stacks::cv_buff(encode_hex(input.name)),
+      stacks::cv_buff(encode_hex(input.zonefile)),
+  ]
+  signer = wallet.operator
+  confirmations = 1
+}
+
+# display outputs
+output "bns_name" {
+  value = "Updated Zonefile Hash for ${input.name}.${input.namespace}"
+}
+
+output "name_preorder_tx_link" {
+  value = "https://explorer.hiro.so/txid/${action.send_update_zonefile.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+}
+
+output "name_preorder_result" {
+  value = action.send_update_zonefile.result
+}
