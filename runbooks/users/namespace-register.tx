@@ -1,5 +1,5 @@
 # define defaults
-action "default" "stacks::set_default_network" {
+runtime "stacks::defaults" {
   network_id = env.stacks_network_id
   rpc_api_url = env.stacks_api_url
 }
