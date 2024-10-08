@@ -1,52 +1,52 @@
 # define defaults
-runtime "stacks::defaults" {
-  network_id = env.stacks_network_id
-  rpc_api_url = env.stacks_api_url
+addon "stacks" {
+  network_id = input.stacks_network_id
+  rpc_api_url = input.stacks_api_url
 }
 
 # define wallets
-wallet "operator" "stacks::connect" {
-  expected_address = env.bns_operator_address
+signer "operator" "stacks::web_wallet" {
+  expected_address = input.bns_operator_address
 }
 
 # define inputs
-input "namespace" {
+variable "namespace" {
   description = "TLD / Namespace"
-  default = "btc"
+  value = "btc"
 }
 
-input "name" {
+variable "name" {
   description = "Domain name to update"
-  default = "bns"
+  value = "bns"
 }
 
 
-input "zonefile" {
+variable "zonefile" {
   description = "New zonefile hash to attach to the new domain"
-  default = "0000000000"
+  value = "0000000000"
 }
 
 # perform on-chain interactions
-action "send_update_zonefile" "stacks::send_contract_call" {
-  description = "Send Transaction to Update Zonefile Hash for ${input.name}.${input.namespace}"
-  contract_id = env.bns_v2_id
+action "send_update_zonefile" "stacks::call_contract" {
+  description = "Send Transaction to Update Zonefile Hash for ${variable.name}.${variable.namespace}"
+  contract_id = input.bns_v2_id
   function_name = "update-zonefile-hash"
   function_args = [
-      stacks::cv_buff(encode_hex(input.namespace)),
-      stacks::cv_buff(encode_hex(input.name)),
-      stacks::cv_buff(encode_hex(input.zonefile)),
+      stacks::cv_buff(encode_hex(variable.namespace)),
+      stacks::cv_buff(encode_hex(variable.name)),
+      stacks::cv_buff(encode_hex(variable.zonefile)),
   ]
-  signer = wallet.operator
+  signer = signer.operator
   confirmations = 1
 }
 
 # display outputs
 output "bns_name" {
-  value = "Updated Zonefile Hash for ${input.name}.${input.namespace}"
+  value = "Updated Zonefile Hash for ${variable.name}.${variable.namespace}"
 }
 
 output "name_preorder_tx_link" {
-  value = "https://explorer.hiro.so/txid/${action.send_update_zonefile.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+  value = "https://explorer.hiro.so/txid/${action.send_update_zonefile.tx_id}?chain=${input.stacks_network_id}&api=${input.stacks_api_url}"
 }
 
 output "name_preorder_result" {

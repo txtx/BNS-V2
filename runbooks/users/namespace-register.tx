@@ -1,57 +1,57 @@
 # define defaults
-runtime "stacks::defaults" {
-  network_id = env.stacks_network_id
-  rpc_api_url = env.stacks_api_url
+addon "stacks" {
+  network_id = input.stacks_network_id
+  rpc_api_url = input.stacks_api_url
 }
 
 # define wallets
-wallet "operator" "stacks::mnemonic" {
-  mnemonic = env.bns_operator_mnemonic
+signer "operator" "stacks::secret_key" {
+  mnemonic = input.bns_operator_mnemonic
 }
 
 # define inputs
-input "namespace" {
+variable "namespace" {
   description = "TLD / Namespace"
   value = "btc"
 }
 
-input "salt" {
+variable "salt" {
   description = "Random salt to use for preventing front-running"
   value = "00000000000000"
 }
 
-input "namespace_price" {
+variable "namespace_price" {
   description = "Stx to burn when preordering the namespace"
   value = 64000000000
 }
 
 # perform on-chain interactions
-action "send_namespace_preorder" "stacks::send_contract_call" {
-  description = "Send Namespace Preorder transaction for ${input.namespace}"
-  contract_id = env.bns_v2_id
+action "send_namespace_preorder" "stacks::call_contract" {
+  description = "Send Namespace Preorder transaction for ${variable.namespace}"
+  contract_id = input.bns_v2_id
   function_name = "namespace-preorder"
   function_args = [
       stacks::cv_buff(
         ripemd160(sha256(
           [
-            encode_hex(input.namespace),
-            encode_hex(input.salt)
+            encode_hex(variable.namespace),
+            encode_hex(variable.salt)
           ]
         ))
       ),
-      stacks::cv_uint(input.namespace_price), 
+      stacks::cv_uint(variable.namespace_price), 
   ]
-  signer = wallet.operator
+  signer = signer.operator
   confirmations = 1
 }
 
-action "send_namespace_reveal" "stacks::send_contract_call" {
-  description = "Send Namespace Reveal transaction for ${input.namespace}"
-  contract_id = env.bns_v2_id
+action "send_namespace_reveal" "stacks::call_contract" {
+  description = "Send Namespace Reveal transaction for ${variable.namespace}"
+  contract_id = input.bns_v2_id
   function_name = "namespace-reveal"
   function_args = [
-      stacks::cv_buff(encode_hex(input.namespace)),
-      stacks::cv_buff(encode_hex(input.salt)),
+      stacks::cv_buff(encode_hex(variable.namespace)),
+      stacks::cv_buff(encode_hex(variable.salt)),
       stacks::cv_uint(1),
       stacks::cv_uint(1),
       stacks::cv_uint(1),
@@ -73,43 +73,43 @@ action "send_namespace_reveal" "stacks::send_contract_call" {
       stacks::cv_uint(0),
       stacks::cv_uint(0),
       stacks::cv_uint(10000),
-      stacks::cv_principal(env.bns_manager_address),
-      // stacks::cv_some(stacks::cv_principal(env.bns_manager_address)), // for a managed namespace
+      stacks::cv_principal(input.bns_manager_address),
+      // stacks::cv_some(stacks::cv_principal(input.bns_manager_address)), // for a managed namespace
       stacks::cv_none(), // unmanaged namespace
       stacks::cv_bool(true),
       stacks::cv_bool(true),
       stacks::cv_bool(true)
   ]
-  signer = wallet.operator
+  signer = signer.operator
   confirmations = 1
   depends_on = [action.send_namespace_preorder.tx_id]
 }
 
-action "send_namespace_launch" "stacks::send_contract_call" {
-  description = "Send Namespace Launch transaction for ${input.namespace}"
-  contract_id = env.bns_v2_id
+action "send_namespace_launch" "stacks::call_contract" {
+  description = "Send Namespace Launch transaction for ${variable.namespace}"
+  contract_id = input.bns_v2_id
   function_name = "namespace-launch"
   function_args = [
-      stacks::cv_buff(encode_hex(input.namespace))
+      stacks::cv_buff(encode_hex(variable.namespace))
   ]
-  signer = wallet.operator
+  signer = signer.operator
   confirmations = 1
   depends_on = [action.send_namespace_reveal.tx_id]
 }
 
 # display outputs
 output "bns_namespace" {
-  value = "Registered namespace ${input.namespace}"
+  value = "Registered namespace ${variable.namespace}"
 }
 
 output "namespace_preorder_tx_link" {
-  value = "https://explorer.hiro.so/txid/${action.send_namespace_preorder.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+  value = "https://explorer.hiro.so/txid/${action.send_namespace_preorder.tx_id}?chain=${input.stacks_network_id}&api=${input.stacks_api_url}"
 }
 
 output "namespace_reveal_tx_link" {
-  value = "https://explorer.hiro.so/txid/${action.send_namespace_reveal.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+  value = "https://explorer.hiro.so/txid/${action.send_namespace_reveal.tx_id}?chain=${input.stacks_network_id}&api=${input.stacks_api_url}"
 }
 
 output "namespace_launch_tx_link" {
-  value = "https://explorer.hiro.so/txid/${action.send_namespace_launch.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+  value = "https://explorer.hiro.so/txid/${action.send_namespace_launch.tx_id}?chain=${input.stacks_network_id}&api=${input.stacks_api_url}"
 }

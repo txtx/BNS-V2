@@ -1,87 +1,87 @@
 # define defaults
-runtime "stacks::defaults" {
-  network_id = env.stacks_network_id
-  rpc_api_url = env.stacks_api_url
+addon "stacks" {
+  network_id = input.stacks_network_id
+  rpc_api_url = input.stacks_api_url
 }
 
 # define wallets
-wallet "operator" "stacks::connect" {
-  expected_address = env.bns_operator_address
+signer "operator" "stacks::web_wallet" {
+  expected_address = input.bns_operator_address
 }
 
 # define inputs
-input "namespace" {
+variable "namespace" {
   description = "TLD / Namespace"
-  default = "btc"
+  value = "btc"
 }
 
-input "name" {
+variable "name" {
   description = "Domain name to order"
-  default = "bns"
+  value = "bns"
 }
 
-input "salt" {
+variable "salt" {
   description = "Random salt to use for preventing front-running"
-  default = "00000000000000"
+  value = "00000000000000"
 }
 
-input "zonefile" {
+variable "zonefile" {
   description = "Zonefile to attach to the new domain"
-  default = "0000000000"
+  value = "0000000000"
 }
 
-input "name_price" {
+variable "name_price" {
   description = "Stx to burn when preordering the BNS name"
-  default = 64000000000
+  value = 64000000000
 }
 
 
 # perform on-chain interactions
-action "send_name_preorder" "stacks::send_contract_call" {
-  description = "Send Transaction to Preorder ${input.name}.${input.namespace}"
-  contract_id = env.bns_v2_id
+action "send_name_preorder" "stacks::call_contract" {
+  description = "Send Transaction to Preorder ${variable.name}.${variable.namespace}"
+  contract_id = input.bns_v2_id
   function_name = "name-preorder"
   function_args = [
       stacks::cv_buff(
         ripemd160(sha256(
           [
-            encode_hex("${input.name}.${input.namespace}"),
-            encode_hex(input.salt)
+            encode_hex("${variable.name}.${variable.namespace}"),
+            encode_hex(variable.salt)
           ]
         ))
       ),
-      stacks::cv_uint(input.name_price), 
+      stacks::cv_uint(variable.name_price), 
   ]
-  signer = wallet.operator
+  signer = signer.operator
   confirmations = 2 # to avoid ERR-NAME-NOT-CLAIMABLE-YET
 }
 
-action "send_name_register" "stacks::send_contract_call" {
-  description = "Send Transaction to Register ${input.name}.${input.namespace}"
-  contract_id = env.bns_v2_id
+action "send_name_register" "stacks::call_contract" {
+  description = "Send Transaction to Register ${variable.name}.${variable.namespace}"
+  contract_id = input.bns_v2_id
   function_name = "name-register"
   function_args = [
-      stacks::cv_buff(encode_hex(input.namespace)),
-      stacks::cv_buff(encode_hex(input.name)),
-      stacks::cv_buff(encode_hex(input.salt)),
-      stacks::cv_buff(encode_hex(input.zonefile)),
+      stacks::cv_buff(encode_hex(variable.namespace)),
+      stacks::cv_buff(encode_hex(variable.name)),
+      stacks::cv_buff(encode_hex(variable.salt)),
+      stacks::cv_buff(encode_hex(variable.zonefile)),
   ]
-  signer = wallet.operator
+  signer = signer.operator
   confirmations = 1
   depends_on = [action.send_name_preorder.tx_id]
 }
 
 # display outputs
 output "bns_name" {
-  value = "Registered ${input.name}.${input.namespace}"
+  value = "Registered ${variable.name}.${variable.namespace}"
 }
 
 output "name_price" {
-  value = input.name_price
+  value = variable.name_price
 }
 
 output "name_preorder_tx_link" {
-  value = "https://explorer.hiro.so/txid/${action.send_name_preorder.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+  value = "https://explorer.hiro.so/txid/${action.send_name_preorder.tx_id}?chain=${input.stacks_network_id}&api=${input.stacks_api_url}"
 }
 
 output "name_preorder_result" {
@@ -89,7 +89,7 @@ output "name_preorder_result" {
 }
 
 output "name_register_tx_link" {
-  value = "https://explorer.hiro.so/txid/${action.send_name_register.tx_id}?chain=${env.stacks_network_id}&api=${env.stacks_api_url}"
+  value = "https://explorer.hiro.so/txid/${action.send_name_register.tx_id}?chain=${input.stacks_network_id}&api=${input.stacks_api_url}"
 }
 
 output "name_register_result" {
